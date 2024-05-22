@@ -11,7 +11,7 @@ export default function Home() {
   })
   const[color,setColor] = useState(false)
   const[finals,setFinals] = useState(false)
-  const [budget,setBudget] = useState()
+  const [budget,setBudget] = useState(0)
   const[select,setSelect] = useState("breakfast");
   const [remainingCalories,setRemainigCalories]= useState('')
   const[consumedCalories,setConsumedCalories] = useState("")
