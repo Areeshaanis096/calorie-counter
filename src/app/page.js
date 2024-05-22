@@ -1,113 +1,174 @@
-import Image from "next/image";
-
+"use client"
+import { useState } from "react";
 export default function Home() {
+  // states
+  const [check,setCheck]= useState({
+    "breakfast": [],
+    "lunch":[],
+    "dinner":[],
+    "snacks":[],
+    "exercise":[]
+  })
+  const[color,setColor] = useState(false)
+  const[finals,setFinals] = useState(false)
+  const [budget,setBudget] = useState()
+  const[select,setSelect] = useState("breakfast");
+  const [remainingCalories,setRemainigCalories]= useState('')
+  const[consumedCalories,setConsumedCalories] = useState("")
+  const[burned,setBurned] =useState("")
+
+  // variables
+  let remainings;
+  let showings;
+  let exercised;
+  let consumed;
+
+// functions onclick
+const clickAddEntry =  ()=>{
+  setCheck(prev => {
+    return{
+      ...prev,
+      [select]:[
+        ...prev[select],
+        0
+      ]
+    }
+  })
+}
+
+const clickCalculate =(e) =>{
+  e.preventDefault()
+  
+  let added = Object.values(check).map((i)=> i.reduce((a,b)=> a + b, 0 ))
+  // console.log(added)
+  consumed = added.slice(0,4).reduce((a,b)=> a + b, 0 )
+  console.log(consumed)
+  // consumed =  consumed.reduce((a,b)=> a+b,0)
+  exercised = added.pop();
+  remainings = (budget - consumed) + exercised
+  showings = remainings < 0 ? "surplus" : "deficit"
+  setColor(showings === "deficit" ? true : false)
+  setFinals(true)
+  setRemainigCalories(`${Math.abs(remainings)} calories ${showings}`)
+  setConsumedCalories(`${consumed} calories consumed`) 
+  setBurned(`${exercised} calories burned`)
+}
+
+const clickClear = () =>{
+  setCheck({
+    "breakfast": [],
+    "lunch":[],
+    "dinner":[],
+    "snacks":[],
+    "exercise":[]
+  })
+  setBudget(0)
+  setFinals(false)
+  setSelect("breakfast")
+}
+
+// returning function
+const show =()=>{
+  return(
+    Object.entries(check).map(([key,value])=>{
+      return(
+      <>
+      <fieldset className="border mb-2">
+        <legend className="m-2">{key}</legend>
+      <div>
+        {value.map((i,index)=>{
+          return (
+            <>
+              <label
+                for={select + index + "name"} className="m-2">
+                Entry {index + 1} name:
+              </label>
+              <br/>  
+              <input
+              type="text" 
+              id={select + index+ "name"} 
+              placeholder="name"
+              className="m-2 text-dark-blue"
+              />
+              <br/>
+              <label
+                for={select + index + "name"} className="m-2">
+                Entry {index + 1} calories 
+              </label>
+              <br/>
+              <input
+              type="number" 
+              id={select + index + "name"} 
+              placeholder="calories"
+              className="m-2 text-dark-blue"
+              onChange={(e)=>value[index] = Number(e.target.value)}
+              />
+              <br/>
+            </>
+
+          )
+
+      })}
+      </div>
+      </fieldset>
+      </>
+      )
+    })
+  
+    
+    )
+}
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.js</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <main>
+      <h1 className="text-center font-medium text-3xl m-4">Calorie Counter</h1>
+      <div className=" w-11/12 max-w-2xl my-5 mx-auto ">
+        <form id="calorie-counter">
+          <label for="budget">Budget</label>
+          <input
+          id="budget"
+          min={0}
+          value = {budget}
+          placeholder="Daily calorie budget"
+          type="number"
+          required
+          onChange={(e)=>setBudget(e.target.value)}
+          className="m-1 text-xs text-dark-blue"
+          />
+          
+            <div>{show()}</div>
+            
+          <span>
+              <label for="entry-dropdown" className="mb-2 text-base">Add food or exercise:</label>
+              
+              <select 
+              id="entry-dropdown" 
+              name="options" 
+              value={select} 
+              onChange={e =>setSelect(e.target.value)} 
+              className=" min-h-6 text-dark-blue text-xs m-2">
+                <option value="breakfast" selected>Breakfast</option>
+                <option value="lunch">Lunch</option>
+                <option value="dinner">Dinner</option>
+                <option value="snacks">Snacks</option>
+                <option value="exercise">Exercise</option>
+              </select>
+              <button type="button" id="add-entry" className="text-xs p-px bg-light-yellow border-2 border-dark-yellow text-dark-blue" onClick={clickAddEntry} >Add Entry</button>
+              <div>
+              <button type="submit"  className="text-xs p-px bg-light-yellow border-2 border-dark-yellow text-dark-blue m-1"  onClick={(e)=>clickCalculate(e)}>Calculate remaining calories</button>
+              <button type="button" id="clear" className="text-xs p-px bg-light-yellow border-2 border-dark-yellow text-dark-blue m-1 " onClick={clickClear} >clear</button>
+              </div>
+            </span>
+        </form>
+        <div className={`${finals ? "block" : "hidden" } border-4 m-2`}>
+          <div className="text-center">
+            <p className={`${color ? "text-green" : "text-red"} m-2 text-2xl`}>{remainingCalories}</p>
+            <hr/>
+            <p className="m-2 text-xl">{budget} calories budgeted</p>
+            <p className="m-2 text-xl">{consumedCalories}</p>
+            <p className="m-2 text-xl">{burned}</p>
+          </div>
         </div>
       </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-full sm:before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full sm:after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50 text-balance`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
     </main>
-  );
+      );
 }
